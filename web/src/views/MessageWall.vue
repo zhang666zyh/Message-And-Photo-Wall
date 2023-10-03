@@ -33,16 +33,29 @@
       ></NoteCard>
     </div>
 
-    <div class="photo" v-if="getTypeId === 1">photos</div>
+    <div class="photo" v-else>
+      <PhotoCard
+        :photo="item"
+        v-for="(item, index) in photo"
+        :key="index"
+        class="photo-card"
+        @imgPreview="imgPreview"
+      />
+      <ImgViewer v-if="isShowPreview && getTypeId" :imgName="previewImgName" />
+    </div>
 
-    <div class="add" :style="{ bottom: addBottom + 'px' }" @click="changeShow">
+    <div
+      class="add"
+      :style="{ bottom: addBottom + 'px' }"
+      @click="changeShow(1)"
+    >
       <span class="iconfont icon-tianjia"></span>
     </div>
 
     <transition name="modal">
       <AddNoteDom
         :title="formType === 0 ? '' : '写留言'"
-        @changeShow="changeShow"
+        @changeShow="changeShow(0)"
         v-if="isShow"
       >
         <AddNoteForm
@@ -58,11 +71,13 @@
 
 <script>
 import { wallType, label } from "@/utils/data"
+import { note, photo } from "../../mock/index"
 import NoteCard from '../components/NoteCard.vue'
+import PhotoCard from '../components/PhotoCard.vue'
 import AddNoteDom from '../components/AddNoteDom.vue'
-import { note } from "../../mock/index"
 import AddNoteForm from '../components/AddNoteForm.vue'
 import CardDetail from '../components/CardDetail.vue'
+import ImgViewer from '../components/ImgViewer.vue'
 import { mapGetters } from 'vuex'
 
 export default {
@@ -72,11 +87,14 @@ export default {
       label,
       nlabel: -1, // 当前对应的标签
       note: note.data,
+      photo: photo.data,
       nWidth: 0, // 卡片模块宽度
       addBottom: 30, // add按钮距离底部高度
       formType: 0, // 弹出窗口模式(0 详情 / 1 添加)
       isShow: false, // 添加留言窗口的显示与否
       cardSelected: -1, // 当前选择卡片
+      previewImgName: '', // 当前要预览的图片名
+      isShowPreview: false, // 预览的开启与关闭
     }
   },
   computed: {
@@ -88,7 +106,9 @@ export default {
     NoteCard,
     AddNoteDom,
     AddNoteForm,
-    CardDetail
+    CardDetail,
+    PhotoCard,
+    ImgViewer
   },
   methods: {
     selectcNode (index) {
@@ -113,8 +133,8 @@ export default {
         this.addBottom = 30
       }
     },
-    changeShow () {
-      this.formType = 1
+    changeShow (type) {
+      this.formType = type
       this.isShow = !this.isShow
     },
     // 选择卡片
@@ -128,6 +148,12 @@ export default {
         this.cardSelected = -1
         this.isShow = false
       }
+    },
+    // 图片预览
+    imgPreview (imgName) {
+      this.isShowPreview = true
+      // this.isShow = true
+      this.previewImgName = imgName
     }
   },
   mounted () {
@@ -232,6 +258,18 @@ export default {
 
     .card-selected {
       border: 1px solid @primary-color;
+    }
+  }
+
+  .photo {
+    width: 88%;
+    margin: 0 auto;
+    columns: 6;
+    column-gap: @padding-8;
+    padding: 28px;
+
+    .photo-card {
+      margin-bottom: @padding-8;
     }
   }
 
